@@ -1,0 +1,62 @@
+- hosts: all
+  tasks: 
+  - yum_repository:
+      name: docker_repo
+      description: Docker repo
+      baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+      gpgcheck: no
+  - debug:
+      msg: "configured yum for docker"
+
+  - package:
+      name: "docker-ce-18.09.1-3.el7.x86_64"
+      state: present
+  - debug:
+      msg: "docker installed"
+
+  - service:
+      name: "docker"
+      state: started
+      enabled: yes
+  - debug:
+      msg: "docker service started"
+
+  - package:
+      name: python3
+      state: present
+  - debug: 
+      msg: "python3 installed"
+
+  - command: pip3 install docker
+  - debug:
+      msg: docker sdk installed
+
+  - docker_image:
+      name: httpd
+      source: pull
+  - debug: 
+      msg: "docker image pulled"
+ 
+  - file:
+      path: "/root/ansiblews/ansiblecode/"
+      state: directory
+
+  - copy: 
+      dest: "/root/ansiblews/ansiblecode/code.html"
+      content: "Hi I m Divya and this is docker setup task using ansible-playbook."
+  - debug:
+      msg: "content copied"
+
+  - docker_container:
+      name: httpd_web
+      image: httpd
+      state: started
+      exposed_ports:
+        - "80"
+      ports:
+        - "8080:80"
+      volumes:
+        - /root/ansiblews/ansiblecode/:/usr/local/apache2/htdocs/
+  - debug:
+      msg: "container started"
+      
